@@ -1,6 +1,6 @@
 {
   "name": "@ahryman40k/fhir-spec-loader",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "load spec from hl7.org/fhir or from local files",
   "main": "lib/index.js",
   "scripts": {

@@ -4,12 +4,13 @@
   "description": "load spec from hl7.org/fhir or from local files",
   "main": "lib/index.js",
   "scripts": {
-    "prepare": "npm run build",
+    "prepare": "npm run snyk-protect; npm run build",
     "build": "tsc",
     "test": "jest",
     "clean": "rimraf lib/*",
     "publish-me": "npm run clean && npm version patch && tsc -p . && npm publish --access public",
-    "publish-coverage": "codecov --token=50ac9b8a-5b64-40a3-bac5-721272f90c71"
+    "publish-coverage": "codecov --token=50ac9b8a-5b64-40a3-bac5-721272f90c71",
+    "snyk-protect": "snyk protect"
   },
   "author": "Geoffrey BAUDIN",
   "license": "GPLv3",
@@ -18,7 +19,8 @@
     "io-ts": "^2.0.0",
     "lodash": "^4.17.11",
     "tmp": "^0.1.0",
-    "unzipper": "^0.10.1"
+    "unzipper": "^0.10.1",
+    "snyk": "^1.192.3"
   },
   "devDependencies": {
     "@types/jest": "^24.0.15",
@@ -31,5 +33,6 @@
     "rimraf": "^2.6.3",
     "ts-jest": "^24.0.2",
     "typescript": "^3.5.2"
-  }
+  },
+  "snyk": true
 }

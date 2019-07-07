@@ -9,7 +9,7 @@
     "test": "jest",
     "clean": "rimraf lib/*",
     "publish-me": "npm run clean && npm version patch && tsc -p . && npm publish --access public",
-    "publish-coverage": "codecov --token=50ac9b8a-5b64-40a3-bac5-721272f90c71",
+    "publish-coverage": "codecov --token=6c3362c0-1b2d-42c0-9ac0-8c652f1faa67",
     "snyk-protect": "snyk protect"
   },
   "author": "Geoffrey BAUDIN",

@@ -20,7 +20,7 @@ function loadData(file: string): R4.IBundle {
     const raw = fs.readFileSync(file);
 
     let validation = R4.RTTI_Bundle.decode(JSON.parse(raw.toString()));
-    if (validation.isLeft) {
+    if (validation.isLeft()) {
         throw new Error(PathReporter.report(validation).join('/n'));
     }
 

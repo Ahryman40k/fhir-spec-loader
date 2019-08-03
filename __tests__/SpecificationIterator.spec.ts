@@ -18,14 +18,27 @@ describe('SpecificationIterator', () => {
             expect(definition).toBeDefined();
         }
 
-        expect(i).toBe(202);
+        expect(i).toBe(149);
 
     });
 
+    test("should iterate with predicate", () => {
+        const service = FromFiles([
+            path.join(__dirname, '../../../R4/definition/profiles-resources.json'),
+        ]);
 
-    test("should fail on invalid collection type", () => {
+        const iter = service.ResourcesIterator( item => {
+            return item ? item!.id!.includes('Appointment') : false 
+        });
+        let i: number = 0;
+        while (iter.hasNext()) {
+            ++i;
+            const definition = iter.next();
+            expect(definition).toBeDefined();
+        }
 
-        //  expect(T.decode(value)._tag).toBe('Right');
+        expect(i).toBe(2);
+
     });
 
   

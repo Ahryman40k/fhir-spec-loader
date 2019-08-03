@@ -36,11 +36,11 @@ export class SpecificationService implements ISpecificationService {
         
         return new SpecificationIterator([]);
     }
-    ResourcesIterator(): IIterator<R4.IStructureDefinition> {
+    ResourcesIterator( predicate?: (item: R4.IStructureDefinition) => boolean  ): IIterator<R4.IStructureDefinition> {
         const resources = this._rawSpec.find( spec => spec.id === 'resources');
         if ( resources ) {
-            const definitions = resources.entry!.map( e => e.resource as R4.IStructureDefinition ) ;
-            return new SpecificationIterator(definitions);
+            const definitions = resources.entry!.filter( e => (e.resource as any).resourceType === 'StructureDefinition' ).map( e => e.resource as R4.IStructureDefinition ) ;
+            return new SpecificationIterator(definitions, predicate);
         }
         
         return new SpecificationIterator([]);

@@ -12,6 +12,10 @@
     "publish-coverage": "codecov --token=6c3362c0-1b2d-42c0-9ac0-8c652f1faa67",
     "snyk-protect": "snyk protect"
   },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:Ahryman40k/fhir-spec-loader.git"
+  },
   "author": "Geoffrey BAUDIN",
   "license": "GPLv3",
   "dependencies": {

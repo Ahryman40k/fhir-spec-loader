@@ -1,10 +1,25 @@
+import { SpecificationService } from "../src/SpecificationService";
+import * as path from 'path';
+import { FromFiles } from "../src";
 
 
 describe('SpecificationIterator', () => {
 
     test("should iterate though IStructureDefinition collection", () => {
+        const service = FromFiles([
+            path.join(__dirname, '../../../R4/definition/profiles-resources.json'),
+        ]);
 
-        //  expect(T.decode(value)._tag).toBe('Right');
+        const iter = service.ResourcesIterator();
+        let i: number = 0;
+        while (iter.hasNext()) {
+            ++i;
+            const definition = iter.next();
+            expect(definition).toBeDefined();
+        }
+
+        expect(i).toBe(202);
+
     });
 
 
@@ -13,18 +28,17 @@ describe('SpecificationIterator', () => {
         //  expect(T.decode(value)._tag).toBe('Right');
     });
 
-    test("should detect end of collection", () => {
-
-        //  expect(T.decode(value)._tag).toBe('Right');
-    });
-
+  
     test("should provide undefined on end reached", () => {
 
-        //  expect(T.decode(value)._tag).toBe('Right');
+        const service = FromFiles([]);
+
+        const iter = service.ResourcesIterator();
+        expect(iter.next()).toBeUndefined();
     });
-    
-    
-    
+
+
+
 
 
 })

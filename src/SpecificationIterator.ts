@@ -19,4 +19,12 @@ export class SpecificationIterator implements IIterator<R4.IStructureDefinition>
         return this._current < this.dataSource.length;
     }
 
+    nextUntil( predicate: (item: R4.IStructureDefinition|undefined ) => boolean ): R4.IStructureDefinition | undefined {
+        
+        while ( this.hasNext() && predicate( this.next() ) !== true ) {
+        }
+
+        return this.dataSource[this._current];
+    }
+
 }

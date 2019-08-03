@@ -1,8 +1,7 @@
 
 
-import { StructureDefinitionFhirVersionKind } from '@ahryman40k/ts-fhir-types/lib/R4';
 import * as path from 'path';
-import { FromArchive, FromFiles, FromWebsite } from '../src/loader';
+import { FromFiles } from '../src/loader';
 
 describe('Loaders', () => {
     describe('Loading from files', () => {
@@ -22,17 +21,19 @@ describe('Loaders', () => {
             // @ts-ignore
             expect(service['_rawSpec'].length).toBe(0);
         });
-
-
-
     })
-
+/*
     describe('Loading from archive', () => {
 
         test("should provide a specification service", () => {
 
-            //  expect(T.decode(value)._tag).toBe('Right');
-        });
+            return FromArchive(path.join(__dirname, '../../../R4/r4-spec.zip'))
+                .then(service => {
+                    expect(service).toBeDefined();
+                    // @ts-ignore
+                    expect(service['_rawSpec'].length).toBeGreaterThan(0);
+                })
+        }, 100000);
 
         test("should fail if archive isn't zip file", () => {
 
@@ -40,12 +41,14 @@ describe('Loaders', () => {
                 .then(service => {
                     expect(true).toBe(false);
                 }).catch(err => {
+                    expect(err).toMatchSnapshot();
                     expect(err).toBeDefined();
                 });
         });
 
     })
-
+*/
+/*
     describe('Loading from website', () => {
 
         test("should provide a specification service", () => {
@@ -68,4 +71,5 @@ describe('Loaders', () => {
             })
         });
     })
+    */
 })

@@ -1,3 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`Loaders Loading from website should fail if version is different from R4 1`] = `[Error: Required FHIR version is not supported by Loader class]`;

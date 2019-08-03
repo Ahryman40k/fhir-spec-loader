@@ -25,8 +25,12 @@ yarn install @ahryman40k/fhir-spec-loader
 ```javascript
 import { Loader } from '@ahryman40k/fhir-spec-loader'
 
-```
+const service = FromFiles([
+                path.join(__dirname, './R4/definition/profiles-resources.json'),
+            ]);
 
+```
+I meet some disappointment swith tests. So LoadFromArchive and LoadFromWeb are not ready yet.
 
 ---
 Please don't hesitate to give me advices and feedback !

@@ -1,5 +1,4 @@
 
-import { Loader } from '..';
 
 describe('SpecificationIterator', () => {
 

@@ -1,21 +1,22 @@
 import { R4 } from '@ahryman40k/ts-fhir-types';
 import { ISpecificationService } from './interfaces/ISpecificationService';
 import * as fs from 'fs';
-import * as http from 'http';
 import * as tmp from 'tmp';
 import * as unzipper from 'unzipper';
 
+import download from 'download';
+
 import { PathReporter } from 'io-ts/lib/PathReporter'
 import { SpecificationService } from './SpecificationService';
-
+// -------------------------------------------------------------------------------------------------
 export enum ArchiveKind {
     Zip = 'zip'
 }
-
+// -------------------------------------------------------------------------------------------------
 export type LoaderOptions = {
     format: ArchiveKind
 }
-
+// -------------------------------------------------------------------------------------------------
 function loadData(file: string): R4.IBundle {
     const raw = fs.readFileSync(file);
 
@@ -27,48 +28,82 @@ function loadData(file: string): R4.IBundle {
     return <R4.IBundle>validation.value;
 }
 
-export class Loader {
-    /* 
-    * Extract files into temporary folder then call FromFiles()
-    */
-    static async FromArchive(filename: string, option: LoaderOptions = { format: ArchiveKind.Zip }): Promise<ISpecificationService> {
+// -------------------------------------------------------------------------------------------------
+/* 
+* Extract files into temporary folder then call FromFiles()
+*/
+export async function FromArchive(filename: string, option: LoaderOptions = { format: ArchiveKind.Zip }): Promise<ISpecificationService> {
 
-        const tmpDir = tmp.dirSync({ prefix: 'fhir-spec' });
+    const tmpDir = tmp.dirSync({ prefix: 'fhir-spec' });
+    let service: ISpecificationService;
+    try {
+
         fs.createReadStream(filename)
             .pipe(unzipper.Extract({ path: tmpDir.name }));
 
-        return this.FromFiles( fs.readdirSync(tmpDir.name ) );
+
+        service = FromFiles(fs.readdirSync(tmpDir.name));
+
+    } catch (err) {
+        throw err;
+    } finally {
+        tmpDir.removeCallback();
     }
+    return service;
+}
+// -------------------------------------------------------------------------------------------------
+export function FromFiles(files: string[]): ISpecificationService {
+    // TODO: Test files extension should be json
 
-    static FromFiles(files: string[]): ISpecificationService {
-        // TODO: Test files extension should be json
-        try {
-            return new SpecificationService(
-                files.map(f => loadData(f))
-            );
+    let service: ISpecificationService;
+    try {
+        service = new SpecificationService(
+            files.map(f => loadData(f))
+        );
 
-        } catch (ex) {
-            throw ex;
-        } finally {
-            return new SpecificationService([]);
+    } catch (ex) {
+        throw ex;
+    } finally {
+        // @ts-ignore
+        if ( !service ) {
+            service = new SpecificationService([]);
         }
     }
 
-    static async FromWebsite(version: R4.StructureDefinitionFhirVersionKind): Promise<ISpecificationService> {
-        if (version != R4.StructureDefinitionFhirVersionKind._400) {
-            throw new Error('Required FHIR version is not supported by Loader class');
-        }
+    return service;
+}
+// -------------------------------------------------------------------------------------------------
+export async function FromWebsite(version: R4.StructureDefinitionFhirVersionKind): Promise<ISpecificationService> {
 
-        // Create temporary name
-        const tmpFile = tmp.fileSync({ prefix: 'fhir-spec', postfix: '.zip' });
-        const downloaded = fs.createWriteStream(tmpFile.name)
 
-        // Download spec archive and save it with temparoray name
-        await http.get("https://www.hl7.org/fhir/definitions.json.zip", response => {
-            response.pipe(downloaded);
-        });
+
+    if (version != R4.StructureDefinitionFhirVersionKind._400) {
+        throw new Error('Required FHIR version is not supported by Loader class');
+    }
+
+
+    // Create temporary name
+    const tmpFile = tmp.fileSync({ prefix: 'fhir-spec', postfix: '.zip' });
+
+    let service: ISpecificationService;
+    try {
+        // Download spec archive and save it with temparoray name        
+        const data = await download('http://www.hl7.org/fhir/definitions.json.zip')
+        fs.writeFileSync(tmpFile.name, data);
 
         // Unzip archive
-        return Loader.FromArchive(tmpFile.name);
+        service = await FromArchive(tmpFile.name);
+
     }
+    catch (err) {
+        throw err;
+    } finally {
+        fs.unlink(tmpFile.name, (err) => {
+            console.error('cheat');
+        });
+    }
+
+    // @ts-ignore
+    return service;
 }
+// -------------------------------------------------------------------------------------------------

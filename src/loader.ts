@@ -1,15 +1,18 @@
-import { R4 } from '@ahryman40k/ts-fhir-types';
 import { ISpecificationService } from './interfaces/ISpecificationService';
-import * as fs from 'fs';
-import * as tmp from 'tmp';
-import * as path from 'path';
-import * as unzipper from 'unzipper';
-
+import fs from 'fs';
+import tmp from 'tmp';
+import path from 'path';
+import unzipper from 'unzipper';
 import download from 'download';
 
-import { PathReporter } from 'io-ts/lib/PathReporter'
-import { SpecificationService } from './SpecificationService';
-import { promises } from 'dns';
+// import { PathReporter } from 'io-ts/lib/PathReporter'
+import { FhirSpecificationServiceFactory } from './SpecificationService';
+
+import { Observable, from, of, forkJoin } from 'rxjs';
+import { switchMap, tap, mergeMap, map } from 'rxjs/operators';
+import { BundleLike } from './interfaces';
+
+
 // -------------------------------------------------------------------------------------------------
 export enum ArchiveKind {
     Zip = 'zip'
@@ -20,101 +23,72 @@ export type LoaderOptions = {
 }
 // -------------------------------------------------------------------------------------------------
 
-/*function loadData(file: string): R4.IBundle {
-    const raw = fs.readFileSync(file);
 
-    let validation = R4.RTTI_Bundle.decode(JSON.parse(raw.toString()));
-    if (validation.isLeft()) {
-        throw new Error(PathReporter.report(validation).join('/n'));
-    }
+export type FhirVersion = 'last' |'4.5.0' | '4.4.0' | '4.2.0' | '4.1.0' | '4.0.1' | '4.0.0' | '3.5.0'
 
-    return <R4.IBundle>validation.value;
-}*/
 
-function decodeBundle(raw: string): R4.IBundle {
+function decodeBundle(raw: string): BundleLike {
 
-    let validation = R4.RTTI_Bundle.decode(JSON.parse(raw));
-    if (validation.isLeft()) {
-        throw new Error(PathReporter.report(validation).join('/n'));
-    }
+    // let validation = R4.RTTI_Bundle.decode(JSON.parse(raw));
+    // if (validation.isLeft()) {
+    //    throw new Error(/*PathReporter.report(validation).join('/n')*/);
+    // }
+    //return <R4.IBundle>validation.value;
 
-    return <R4.IBundle>validation.value;
+    return JSON.parse(raw);
 }
 
+
+
 // -------------------------------------------------------------------------------------------------
-/* 
-* Extract files into temporary folder then call FromFiles()
-*/
-/*
-export async function FromArchive(filename: string, option: LoaderOptions = { format: ArchiveKind.Zip }): Promise<ISpecificationService> {
 
-    let service: ISpecificationService = new SpecificationService([]);
-    try {
-        const directory = await unzipper.Open.file(filename);
-        const files = directory.files.filter(f => path.extname(f.path) === '.json');
+export default abstract class FhirSpecificationLoaderStatic { 
+    static FromFiles(files: string[]): ISpecificationService {
+        // TODO: Test files extension should be json
+        try {
+            const bundles = files.map(f => fs.readFileSync(f)).map(b => decodeBundle(b.toString()));
+            return FhirSpecificationServiceFactory.SpecificationService(bundles);
 
-        const asyncMapToBuffer = async () => {
-            return await Promise.all(files.map(async f => await f.buffer()));
+        } catch (ex) {
+            throw ex;
+        }
+    }
+
+    static FromArchive(filename: string, option: LoaderOptions = { format: ArchiveKind.Zip }): Observable<ISpecificationService> {
+
+        try {
+            return from(unzipper.Open.file(filename)).pipe(
+                switchMap(directory => of(directory.files.filter(f => path.extname(f.path) === '.json'))),
+                // tap(files => console.log(files)),
+                mergeMap(files => forkJoin(...files.map(f => f.buffer()))),
+                map((buffers: Buffer[]) => buffers.map((b: Buffer) => decodeBundle(b.toString()) )),
+                map(bundles => FhirSpecificationServiceFactory.SpecificationService(bundles))
+            )
+        } catch (err) {
+            throw err;
         }
 
-        const buffers = await asyncMapToBuffer();
-        const bundles = buffers.map(b => decodeBundle(b.toString()));
-        service = new SpecificationService(bundles);
-
-    } catch (err) {
-        throw err;
     }
 
-    return service;
+    static FromWebsite(version: FhirVersion): Observable<ISpecificationService> {
+
+        // Create temporary name
+        const tmpFile = tmp.fileSync({ prefix: 'fhir-spec', postfix: '.zip' });
+
+        try {
+            // Download spec archive and save it with temporary name        
+            return from ( download('http://build.fhir.org/definitions.json.zip') ).pipe(
+                tap( data => fs.writeFileSync(tmpFile.name, data) ),
+                switchMap( data => FhirSpecificationLoaderStatic.FromArchive(tmpFile.name) )
+            )
+        }
+        catch (err) {
+            throw err;
+        } finally {
+            fs.unlink(tmpFile.name, (err) => {
+                console.error('cheat');
+            });
+        }
+    }
+
 }
-*/
-// -------------------------------------------------------------------------------------------------
-
-export function FromFiles(files: string[]): ISpecificationService {
-    // TODO: Test files extension should be json
-
-    let service: ISpecificationService = new SpecificationService([]);;
-    try {
-        const bundles = files.map(f => fs.readFileSync(f)).map(b => decodeBundle(b.toString()));
-        service = new SpecificationService(bundles);
-
-    } catch (ex) {
-        throw ex;
-    }
-
-    return service;
-}
-
-// -------------------------------------------------------------------------------------------------
-/*
-export async function FromWebsite(version: R4.StructureDefinitionFhirVersionKind): Promise<ISpecificationService> {
-
-    if (version != R4.StructureDefinitionFhirVersionKind._400) {
-        throw new Error('Required FHIR version is not supported by Loader class');
-    }
-
-    // Create temporary name
-    const tmpFile = tmp.fileSync({ prefix: 'fhir-spec', postfix: '.zip' });
-
-    let service: ISpecificationService;
-    try {
-        // Download spec archive and save it with temparoray name        
-        const data = await download('http://www.hl7.org/fhir/definitions.json.zip')
-        fs.writeFileSync(tmpFile.name, data);
-
-        // Unzip archive
-        service = await FromArchive(tmpFile.name);
-    }
-    catch (err) {
-        throw err;
-    } finally {
-        fs.unlink(tmpFile.name, (err) => {
-            console.error('cheat');
-        });
-    }
-
-    // @ts-ignore
-    return service;
-}
-*/
-// -------------------------------------------------------------------------------------------------

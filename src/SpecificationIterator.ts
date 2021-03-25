@@ -1,21 +1,23 @@
 import { IIterator } from "./interfaces/IIterator";
 
-import * as _ from 'lodash';
-import { R4 } from "@ahryman40k/ts-fhir-types";
+import { StructureDefinitionLike } from "./interfaces";
 
-export class SpecificationIterator implements IIterator<R4.IStructureDefinition> {
+export class SpecificationIterator implements IIterator<StructureDefinitionLike> {
 
     private _current: number = -1;
     private _next: number = -1;
 
     constructor(
-        private dataSource: R4.IStructureDefinition[],
-        private predicate: (item: R4.IStructureDefinition) => boolean = item => true) {
-       // this._nextMatch();
+        private dataSource: StructureDefinitionLike[],
+        private predicate: (item: StructureDefinitionLike) => boolean = item => true) {
     }
 
-    next(): R4.IStructureDefinition | undefined {
-        return this._next !== -1 ? this.dataSource[this._current = this._next] : undefined;
+    next(): StructureDefinitionLike {
+        if ( this._next === -1 ) {
+            throw new Error( 'No more items');
+        }
+        
+        return this.dataSource[this._current = this._next] ;
     }
 
     hasNext(): boolean {

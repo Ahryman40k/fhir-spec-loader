@@ -22,7 +22,7 @@ yarn install @ahryman40k/fhir-spec-loader
 
 
 ## Examples
-```javascript
+```typescript
 import { Loader } from '@ahryman40k/fhir-spec-loader'
 
 const service = FromFiles([
@@ -30,7 +30,7 @@ const service = FromFiles([
             ]);
 
 ```
-I meet some disappointment swith tests. So LoadFromArchive and LoadFromWeb are not ready yet.
+
 
 ---
 Please don't hesitate to give me advices and feedback !

@@ -30,7 +30,7 @@
     "download": "^8.0.0",
     "io-ts": "^2.2.16",
     "lodash": "^4.17.21",
-    "tmp": "^0.2.1",
+    "tmp": "^0.2.2",
     "unzipper": "^0.10.11"
   },
   "devDependencies": {

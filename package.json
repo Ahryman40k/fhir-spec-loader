@@ -31,7 +31,7 @@
     "io-ts": "^2.2.16",
     "lodash": "^4.17.21",
     "tmp": "^0.2.1",
-    "unzipper": "^0.10.11"
+    "unzipper": "^0.12.1"
   },
   "devDependencies": {
     "@types/download": "^6.2.4",
